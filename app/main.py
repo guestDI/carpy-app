@@ -2,10 +2,18 @@ import shutil
 from fastapi import FastAPI, Depends, File, UploadFile, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import extract, func
-from app import models, schemas, database
+from app import models, schemas, database, receipt_processor
 from pathlib import Path
+from .database import SessionLocal, engine
 
 app = FastAPI()
+
+def get_db():
+    db = SessionLocal(bind=engine)
+    try:
+        yield db
+    finally:
+        db.close()
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True) 
@@ -78,3 +86,32 @@ def get_stats(month: int, year: int, db: Session = Depends(database.get_db)):
     ).scalar()
 
     return {"total_expense": total_expense or 0}
+
+@app.post("/upload-receipt/", response_model=schemas.Receipt)
+async def upload_receipt(
+    file: UploadFile = File(...),
+    works: list[schemas.WorkCreate] = [],
+    db: Session = Depends(get_db)
+):
+    file_path = f"./{file.filename}"
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    receipt_data = receipt_processor.process_receipt_image(file_path)
+    
+    receipt_db = models.Receipt(
+        content=receipt_data["content"],
+        price=receipt_data["price"],
+        date=receipt_data["date"]
+    )
+    db.add(receipt_db)
+    db.commit()
+    db.refresh(receipt_db)
+
+    for work in works:
+        work_db = models.Work(**work.dict(), receipt_id=receipt_db.id)
+        db.add(work_db)
+    
+    db.commit()
+
+    return receipt_db
