@@ -1,0 +1,26 @@
+<!-- frontend/templates/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Service</title>
+</head>
+<body>
+    <h1>Upload Receipt</h1>
+    <form action="/api/upload-receipt/" method="post" enctype="multipart/form-data">
+        <label for="file">Select receipt image:</label><br>
+        <input type="file" id="file" name="file"><br><br>
+
+        <label for="work1">Work 1:</label><br>
+        <input type="text" id="work1" name="works[0][description]" placeholder="Description">
+        <input type="text" name="works[0][cost]" placeholder="Cost"><br><br>
+
+        <label for="work2">Work 2:</label><br>
+        <input type="text" id="work2" name="works[1][description]" placeholder="Description">
+        <input type="text" name="works[1][cost]" placeholder="Cost"><br><br>
+
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>

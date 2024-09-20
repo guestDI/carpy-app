@@ -21,3 +21,6 @@ SQLAlchemy==2.0.35
 starlette==0.38.5
 typing_extensions==4.12.2
 uvicorn==0.30.6
+asgiref==3.8.1
+django==5.1.1
+sqlparse==0.5.1
